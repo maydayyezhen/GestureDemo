@@ -30,6 +30,12 @@ interface HealthResponse {
   ok?: boolean
 }
 
+interface GesturePoint {
+  x: number
+  y: number
+  z?: number
+}
+
 interface GestureResultPayload {
   type: string
   status?: string
@@ -38,8 +44,10 @@ interface GestureResultPayload {
   validFrames?: number
   windowSize?: number
   hasValidHand?: boolean
+  landmarks?: GesturePoint[] | null
   message?: string
 }
+
 
 interface LogItem {
   id: number
@@ -87,6 +95,7 @@ struct Index {
   @State private cameraState: string = '未启动'
   @State private serviceMessage: string = '先改顶部 IP 和端口，再点开始识别。'
   @State private previewReady: boolean = false
+  @State private previewAspectRatio: number = FRAME_HEIGHT / FRAME_WIDTH
   @State private isBusy: boolean = false
   @State private isRecognizing: boolean = false
   @State private lastStatus: string = '-'
@@ -99,6 +108,9 @@ struct Index {
   @State private droppedFrames: number = 0
   @State private captureErrors: number = 0
   @State private logs: LogItem[] = []
+  @State private landmarks: GesturePoint[] = []
+  @State private previewAreaWidth: number = 0
+  @State private previewAreaHeight: number = 0
 
   private previewController: XComponentController = new XComponentController()
   private decoder: util.TextDecoder = util.TextDecoder.create('utf-8', { ignoreBOM: true })
@@ -284,6 +296,7 @@ struct Index {
       previewProfileSize = `${previewProfile.size.width}x${previewProfile.size.height}`
       this.activeFrameWidth = previewProfile.size.width
       this.activeFrameHeight = previewProfile.size.height
+      this.previewAspectRatio = previewProfile.size.height / previewProfile.size.width
       input = manager.createCameraInput(device)
 
       await input.open()
@@ -402,6 +415,7 @@ struct Index {
         this.validFrames = payload.validFrames ?? 0
         this.windowSize = payload.windowSize ?? 0
         this.hasValidHand = payload.hasValidHand ?? false
+        this.landmarks = payload.landmarks ?? []
         this.serviceMessage = this.describeResult(payload)
         return
       }
@@ -590,6 +604,7 @@ struct Index {
     this.pendingFrame = null
     this.captureInProgress = false
     this.isSendingFrame = false
+    this.landmarks = []
 
     const socket = this.gestureSocket
     this.gestureSocket = null
@@ -761,12 +776,30 @@ struct Index {
           controller: this.previewController
         })
           .width('100%')
-          .aspectRatio(4 / 3)
+          .aspectRatio(this.previewAspectRatio)
           .backgroundColor('#09111C')
           .borderRadius(24)
           .onLoad(() => {
             this.handlePreviewLoaded()
           })
+
+        // 点位覆盖层
+        Stack() {
+          ForEach(this.landmarks, (point: GesturePoint, index: number) => {
+            Row()
+              .width(10)
+              .height(10)
+              .borderRadius(5)
+              .backgroundColor('#00FF66')
+              .position({
+                x: point.x * this.previewAreaWidth - 5,
+                y: point.y * this.previewAreaHeight - 5
+              })
+          }, (_point: GesturePoint, index: number) => `${index}`)
+        }
+        .width('100%')
+        .aspectRatio(this.previewAspectRatio)
+        .hitTestBehavior(HitTestMode.None)
 
         if (!this.previewReady) {
           Column({ space: 8 }) {
@@ -782,6 +815,10 @@ struct Index {
         }
       }
       .width('100%')
+      .onAreaChange((_oldValue, newValue) => {
+        this.previewAreaWidth = Number(newValue.width)
+        this.previewAreaHeight = Number(newValue.height)
+      })
 
       Text(this.serviceMessage)
         .width('100%')
