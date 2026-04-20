@@ -8,7 +8,7 @@ import { abilityAccessCtrl } from '@kit.AbilityKit'
 
 const BACKEND_HOST: string = '192.168.43.6'
 const BACKEND_PORT: number = 8000
-const TARGET_FPS: number = 15
+const TARGET_FPS: number = 12
 const FRAME_WIDTH: number = 640
 const FRAME_HEIGHT: number = 480
 const JPEG_QUALITY: number = 80
@@ -109,6 +109,7 @@ struct Index {
   @State private captureErrors: number = 0
   @State private logs: LogItem[] = []
   @State private landmarks: GesturePoint[] = []
+  @State private landmarksVersion: number = 0
   @State private previewAreaWidth: number = 0
   @State private previewAreaHeight: number = 0
 
@@ -415,7 +416,16 @@ struct Index {
         this.validFrames = payload.validFrames ?? 0
         this.windowSize = payload.windowSize ?? 0
         this.hasValidHand = payload.hasValidHand ?? false
-        this.landmarks = payload.landmarks ?? []
+        const source = payload.landmarks ?? []
+        this.landmarks = source.map((item: GesturePoint): GesturePoint => {
+          return {
+            x: item.x,
+            y: item.y,
+            z: item.z
+          }
+        })
+        this.landmarksVersion += 1
+        this.landmarksVersion += 1
         this.serviceMessage = this.describeResult(payload)
         return
       }
@@ -605,6 +615,7 @@ struct Index {
     this.captureInProgress = false
     this.isSendingFrame = false
     this.landmarks = []
+    this.landmarksVersion += 1
 
     const socket = this.gestureSocket
     this.gestureSocket = null
@@ -783,23 +794,23 @@ struct Index {
             this.handlePreviewLoaded()
           })
 
-        // 点位覆盖层
-        Stack() {
-          ForEach(this.landmarks, (point: GesturePoint, index: number) => {
-            Row()
-              .width(10)
-              .height(10)
-              .borderRadius(5)
-              .backgroundColor('#00FF66')
-              .position({
-                x: point.x * this.previewAreaWidth - 5,
-                y: point.y * this.previewAreaHeight - 5
-              })
-          }, (_point: GesturePoint, index: number) => `${index}`)
-        }
-        .width('100%')
-        .aspectRatio(this.previewAspectRatio)
-        .hitTestBehavior(HitTestMode.None)
+        // // 点位覆盖层
+        // Stack() {
+        //   ForEach(this.landmarks, (point: GesturePoint, index: number) => {
+        //     Row()
+        //       .width(10)
+        //       .height(10)
+        //       .borderRadius(5)
+        //       .backgroundColor('#00FF66')
+        //       .position({
+        //         x: point.x * this.previewAreaWidth - 5,
+        //         y: point.y * this.previewAreaHeight - 5
+        //       })
+        //   }, (_point: GesturePoint, index: number) => `${index}-${this.landmarksVersion}`)
+        // }
+        // .width('100%')
+        // .aspectRatio(this.previewAspectRatio)
+        // .hitTestBehavior(HitTestMode.None)
 
         if (!this.previewReady) {
           Column({ space: 8 }) {
