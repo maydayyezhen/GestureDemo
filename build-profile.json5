@@ -1,0 +1,56 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\77349\\.ohos\\config\\default_GestureDemo_QdXINh84PC2MoQe_Q3-Pb-_JTNJWwMgHO165xRtVjRs=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BDC5826F1BD8D85FD80ECCD63D56425B4194F24731CA3FCFB5C667B6B0BA20A374339A20CC863D4",
+          "profile": "C:\\Users\\77349\\.ohos\\config\\default_GestureDemo_QdXINh84PC2MoQe_Q3-Pb-_JTNJWwMgHO165xRtVjRs=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\77349\\.ohos\\config\\default_GestureDemo_QdXINh84PC2MoQe_Q3-Pb-_JTNJWwMgHO165xRtVjRs=.p12",
+          "storePassword": "0000001B4EDF4B0485B3EB28E2C63E547D5C1CB1C3B34C56AE5F762CBA4D995DC26BC417B38F143A276531"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "6.0.2(22)",
+        "compatibleSdkVersion": "6.0.2(22)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
